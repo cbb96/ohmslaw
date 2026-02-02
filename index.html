@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Ohm’s Law Pro</title>
+  <meta name="description" content="Professional Ohm’s Law calculator (V, I, R, P) + battery mAh tools. Perfect for GitHub Pages." />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo" aria-hidden="true">Ω</div>
+      <div>
+        <h1>Ohm’s Law Pro</h1>
+        <p class="sub">Solve V, I, R, P with engineering suffix support</p>
+      </div>
+    </div>
+
+    <div class="top-actions">
+      <button class="btn ghost" id="btnTheme" type="button" title="Toggle theme">
+        <span class="icon" aria-hidden="true">🌗</span>
+        <span>Theme</span>
+      </button>
+      <a class="btn ghost" href="https://github.com/" target="_blank" rel="noreferrer" title="GitHub Pages-ready">
+        <span class="icon" aria-hidden="true">⬆️</span>
+        <span>Host on GitHub Pages</span>
+      </a>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="grid">
+      <!-- Left: Inputs -->
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Inputs</h2>
+          <p>Enter <strong>any two</strong> values. Supports <code>250m</code>, <code>2k2</code>, <code>4R7</code>, <code>100µ</code>, etc.</p>
+        </div>
+
+        <div class="inputs">
+          <label class="field">
+            <span>Voltage (V)</span>
+            <div class="control">
+              <input id="inV" inputmode="decimal" placeholder="e.g. 12, 3.3" autocomplete="off" />
+              <span class="unit">V</span>
+            </div>
+          </label>
+
+          <label class="field">
+            <span>Current (I)</span>
+            <div class="control">
+              <input id="inI" inputmode="decimal" placeholder="e.g. 250m, 1.2" autocomplete="off" />
+              <span class="unit">A</span>
+            </div>
+            <div class="hint">Tip: <strong>250m</strong> means <strong>250 mA</strong> (0.25 A)</div>
+          </label>
+
+          <label class="field">
+            <span>Resistance (R)</span>
+            <div class="control">
+              <input id="inR" inputmode="decimal" placeholder="e.g. 4R7, 2k2, 10k" autocomplete="off" />
+              <span class="unit">Ω</span>
+            </div>
+          </label>
+
+          <label class="field">
+            <span>Power (P)</span>
+            <div class="control">
+              <input id="inP" inputmode="decimal" placeholder="e.g. 0.5, 2W" autocomplete="off" />
+              <span class="unit">W</span>
+            </div>
+          </label>
+        </div>
+
+        <div class="actions">
+          <button class="btn primary" id="btnSolve" type="button">Solve</button>
+          <button class="btn" id="btnClear" type="button">Clear</button>
+          <button class="btn" id="btnCopy" type="button">Copy result</button>
+
+          <label class="switch">
+            <input id="autoSolve" type="checkbox" checked />
+            <span class="slider"></span>
+            <span class="switch-label">Auto-solve</span>
+          </label>
+        </div>
+
+        <div class="branch">
+          <div class="branch-left">
+            <div class="branch-title">Branch</div>
+            <div class="branch-sub">If multiple solutions exist, pick one here.</div>
+          </div>
+          <select id="branchSelect" class="select" disabled>
+            <option value="">—</option>
+          </select>
+        </div>
+
+        <div class="status" id="status" role="status" aria-live="polite"></div>
+
+        <details class="help">
+          <summary>Input formats & tips</summary>
+          <ul>
+            <li>Engineering suffixes: <code>p n µ/u m k M G</code> (powers of 10³)</li>
+            <li>Resistor notation: <code>4R7</code> → 4.7 Ω, <code>2K2</code> → 2.2 kΩ, <code>1M0</code> → 1.0 MΩ</li>
+            <li>Units are ignored if typed: <code>12V</code>, <code>0.5A</code>, <code>10kΩ</code>, <code>2W</code></li>
+            <li>Negative V/I indicates direction (depends on reference)</li>
+          </ul>
+        </details>
+      </section>
+
+      <!-- Right: Results -->
+      <section class="panel results">
+        <div class="panel-head">
+          <h2>Results</h2>
+          <p>Engineering-format + practical units (mA / mAh where appropriate).</p>
+        </div>
+
+        <div class="cards">
+          <article class="card" id="cardV">
+            <div class="card-title">Voltage</div>
+            <div class="card-value"><span id="outV">—</span> <span class="card-unit" id="unitV">V</span></div>
+
+            <div class="card-sub" id="rawV">—</div>
+          </article>
+
+          <article class="card" id="cardI">
+            <div class="card-title">Current</div>
+            <div class="card-value"><span id="outI">—</span> <span class="card-unit" id="unitI">A</span></div>
+
+            <div class="card-sub" id="rawI">—</div>
+          </article>
+
+          <article class="card" id="cardR">
+            <div class="card-title">Resistance</div>
+            <div class="card-value"><span id="outR">—</span> <span class="card-unit" id="unitR">Ω</span></div>
+
+            <div class="card-sub" id="rawR">—</div>
+          </article>
+
+          <article class="card" id="cardP">
+            <div class="card-title">Power</div>
+            <div class="card-value"><span id="outP">—</span> <span class="card-unit" id="unitP">W</span></div>
+
+            <div class="card-sub" id="rawP">—</div>
+          </article>
+        </div>
+
+        <div class="split">
+          <section class="panel-inset">
+            <h3>Derived</h3>
+            <div class="kv">
+              <div class="kv-row">
+                <div class="k">Energy (1 hour)</div>
+                <div class="v" id="outWh">—</div>
+              </div>
+              <div class="kv-row">
+                <div class="k">Useful current unit</div>
+                <div class="v" id="outIma">—</div>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel-inset">
+            <h3>Notes</h3>
+            <div class="note" id="notes">
+              Enter any two values to compute the rest.
+            </div>
+          </section>
+        </div>
+
+        <hr class="divider" />
+
+        <section class="panel-inset">
+          <div class="tabs">
+            <button class="tab active" data-tab="history">History</button>
+            <button class="tab" data-tab="battery">Battery (mAh)</button>
+          </div>
+
+          <div class="tabpane show" id="tab-history">
+            <div class="history-head">
+              <div class="muted">Saved locally in your browser.</div>
+              <button class="btn small" id="btnClearHistory" type="button">Clear history</button>
+            </div>
+            <ul class="history" id="historyList"></ul>
+          </div>
+
+          <div class="tabpane" id="tab-battery">
+            <div class="battery-grid">
+              <label class="field">
+                <span>Capacity</span>
+                <div class="control">
+                  <input id="capmAh" inputmode="decimal" placeholder="e.g. 700" autocomplete="off" />
+                  <span class="unit">mAh</span>
+                </div>
+              </label>
+
+              <label class="field">
+                <span>Draw</span>
+                <div class="control">
+                  <input id="drawmA" inputmode="decimal" placeholder="e.g. 120" autocomplete="off" />
+                  <span class="unit">mA</span>
+                </div>
+              </label>
+
+              <label class="field">
+                <span>Battery voltage (optional)</span>
+                <div class="control">
+                  <input id="batV" inputmode="decimal" placeholder="e.g. 3.7" autocomplete="off" />
+                  <span class="unit">V</span>
+                </div>
+              </label>
+
+              <div class="battery-actions">
+                <button class="btn primary" id="btnBattery" type="button">Estimate</button>
+                <button class="btn" id="btnBatteryClear" type="button">Clear</button>
+              </div>
+
+              <div class="battery-out">
+                <div class="kv">
+                  <div class="kv-row">
+                    <div class="k">Runtime (ideal)</div>
+                    <div class="v" id="batHours">—</div>
+                  </div>
+                  <div class="kv-row">
+                    <div class="k">Capacity (Ah)</div>
+                    <div class="v" id="batAh">—</div>
+                  </div>
+                  <div class="kv-row">
+                    <div class="k">Energy (Wh, if V given)</div>
+                    <div class="v" id="batWh">—</div>
+                  </div>
+                </div>
+                <div class="muted tiny">
+                  Notes: Real runtime is usually lower (converter losses, cutoff voltage, temperature).
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </section>
+    </section>
+
+    <footer class="footer">
+      <span>Built with vanilla HTML/CSS/JS • GitHub Pages ready</span>
+      <span class="dot">•</span>
+      <span class="muted">Units: A, mA, V, Ω, W, mAh</span>
+    </footer>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
